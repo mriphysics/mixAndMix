@@ -35,7 +35,7 @@ N(end+1:max(max(end+1,max(orDim)),max(deDim)))=1;
 assert(prod(M)==prod(N(orDim)),'Size of reshaping (%d) has to match size of original dimensions (%d)',prod(M),prod(N(orDim)));
 assert(~(Ndo>1 && any(diff(orDim)~=1)),'The origin dimensions (%s) have to be contiguous',sprintf('%d ',orDim));
 
-%assert(all(N(deDim(~ismember(deDim,orDim)))==1),'The destination dimensions (%s) have to be all singletons and not of size (%s)',sprintf('%d ',deDim),sprintf('%d ',N(deDim)));%This takes a bit of time, commented, hope it does not break...
+assert(all(N(deDim(~ismember(deDim,orDim)))==1),'The destination dimensions (%s) have to be all singletons and not of size (%s)',sprintf('%d ',deDim),sprintf('%d ',N(deDim)));%This takes a bit of time...
 
 ND=length(N);
 

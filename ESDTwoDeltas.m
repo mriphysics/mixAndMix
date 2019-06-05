@@ -17,14 +17,15 @@ if nargin<2 || isempty(N);N=256;end
 if nargin<3 || isempty(w);w=0.5;end
 if nargin<4 || isempty(eig);eig=8;end
     
-assert(Beta>0 && Beta<1,'The aspect ratio should be confined to (0,1) but it is %.2f',Beta);
-assert(w>0 && w<1,'The weight of the second delta should be confined to (0,1) but it is %.2f',w);
+%assert(Beta>0 && Beta<1,'The aspect ratio should be confined to (0,1) but it is %.2f',Beta);
+assert(w>0 && w<1,'The weigth of the second delta should be confined to (0,1) but it is %.2f',w);
 
 minV=min(1,eig)*(1-sqrt(Beta)).^2;
 maxV=max(1,eig)*(1+sqrt(Beta)).^2;
 
 if numel(N)==1;esd.grid=linspace(minV,maxV,N);else esd.grid=N;end
 
-m=SparseStieltjes2(esd.grid',Beta,w,eig);%This is a method from the Spectrode tool
-
+m=SparseStieltjes2(esd.grid',Beta,w,eig);
 esd.dens=imag(m)'/pi;
+esd.gridd=gradient(esd.grid);
+esd.apdf=sum(esd.dens.*esd.gridd);

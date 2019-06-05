@@ -12,7 +12,11 @@ function varargout=parUnaFun(x,f,varargin)
 
 NO=nargout;
 NI=length(x);
-assert(NO==NI,'Number of outputs (%d) not equal to number of inputs (%d)',NO,NI);
+assert(NO==NI,'Number of outputs (%d) not equal to number of inputs (%d)');
 
 varargout=cell(1,NO);
-for o=1:NO;varargout{o}=f(x{o},varargin{:});end
+if ~exist('f','var') || isempty(f)
+    for o=1:NO;varargout{o}=x{o};end
+else
+    for o=1:NO;varargout{o}=f(x{o},varargin{:});end
+end

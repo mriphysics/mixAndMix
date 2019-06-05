@@ -58,13 +58,14 @@ for p=1:NP
             tolFpa=1e-4;
             NL=3;
             esd=ESDMixAndMix(C,N,tolFpa,NL);
+            ugr=[find(esd.grid>esd.thre(2));find(esd.grid<esd.thre(1))];
+            ugr=ugr(2:end-1);
+            esd.dens(ugr)=[];
+            esd.grid(ugr)=[];
 
             %SIMULATION
             NR=16;
             esdSim=ESDSimulated(C,N,[],NR);
-            
-            esd.dens(esd.grid>esd.thre)=[];
-            esd.grid(esd.grid>esd.thre)=[];
 
             %Figs. 6a and 6b
             figure

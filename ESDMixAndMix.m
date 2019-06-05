@@ -44,7 +44,7 @@ function esd=ESDMixAndMix(C,N,tolEnd,NL,tolMinEig,indbldiag,tolSta,factCool,Q,to
 %   defaults to 0
 %   * {NMAX} is the maximum number of iterations of fixed point. It
 %   defaults to 100
-%   * ESD is a cell array with the estimated ESDs. Each element is a 
+%   ** ESD is a cell array with the estimated ESDs. Each element is a 
 %   structure containing the following fields:
 %       - ESD.GRID, the grid on which the empirical spectral distribution is
 %   defined
@@ -60,7 +60,7 @@ if nargin<4 || isempty(NL);NL=1;end
 if nargin<5 || isempty(tolMinEig);tolMinEig=0;end%Setting this to a low value may help for singularities at 0
 if nargin<6;indbldiag=[];end
 if nargin<7 || isempty(tolSta);tolSta=1;end
-if nargin<8 || isempty(factCool);factCool=10;end%10;end%It seems it may be feasible to run it with a factCool of 10, but more tests are required. We are being really aggressive due to the nature of our application, reduce this to 2 for more reliable estimates
+if nargin<8 || isempty(factCool);factCool=10;end%It seems it may be feasible to run it with a factCool of 10, but more tests are required. We are being really aggressive due to the nature of our application, reduce this to 2 for more reliable estimates
 if nargin<9 || isempty(Q);Q=2;end%This may probably be something along min(C(4)/2,Mmax)
 if nargin<10 || isempty(tolUnique);tolUnique=0;end%1e-2;end
 if nargin<11 || isempty(nMax);nMax=100;end
@@ -121,8 +121,8 @@ else
     eigG=reshape(eigG,[prod(NE(1:2)) 1 NE(3)]);
     eigG=cat(1,eigG,eigm(mean(C,4)));
 end
-gridx=startingGrid(eigG,Beta,N0,Nin,Nfu);
-
+[gridsta,supp]=startingGrid(eigG,Beta,N0,Nin,Nfu);
+gridx=gridsta;
 perm=1:5;perm(1)=5;perm(5)=1;%Generic permutation
 gridx=permute(gridx,perm);
 
@@ -138,8 +138,8 @@ if gpu;tolSta=gpuArray(tolSta);end
 %BLOCK DIAGONAL ACCELERATION
 if ~isempty(indbldiag) && NC(4)~=1
     ce=length(indbldiag);
-    C=mat2bldiagGPU(C,indbldiag);
-    IdM=mat2bldiagGPU(IdM,indbldiag);
+    C=mat2bldiag(C,indbldiag);
+    IdM=mat2bldiag(IdM,indbldiag);
 else
     ce=0;
 end
@@ -205,7 +205,6 @@ for l=1:NL%For each resolution level
             CC=reshape(CC,[NC(1:2) NC(3)*NGG NC(4)]);
         end
     end
-
     
     n=0;
     vn=v;
@@ -296,14 +295,18 @@ end
 esd.grid=single(permute(gridxPre,[5 2 3 4 1]));
 esd.dens=single(permute(abs(densPre),[5 2 3 4 1]));
 
-%UPPER THRESHOLD ESTIMATE
+%UPPER/LOWER THRESHOLD ESTIMATE
 NP=size(esd.dens,1);
-thS=dynInd(arraySupport(esd.dens,tolEnd(end),0,0),2,1);
-thSS=min(thS+1,NP);
-esd.thre=(indDim(esd.grid,thS,1)+indDim(esd.grid,thSS,1))/2;
-esd.dens(esd.grid>repmat(esd.thre,[NP 1 1]))=0;
+thre=arraySupport(esd.dens,tolEnd(end),0,0);
+threS=[max(thre(1,:,:)-1,1);min(thre(2,:,:)+1,NP)];
+esd.thre=(indDim(esd.grid,thre,1)+indDim(esd.grid,threS,1))/2;
+esd.dens(bsxfun(@lt,esd.grid,esd.thre(1,:,:)) | bsxfun(@gt,esd.grid,esd.thre(2,:,:)))=0;
 
 %GRADIENT AND INTEGRAL ESTIMATES
 esd.gridd=permute(gradient(permute(esd.grid,[2 1 3])),[2 1 3]);
 esd.apdf=sum(esd.dens.*esd.gridd,1);
 
+%TESTED SUPPORT INTERVALS, GRID POINTS AND EIGENVALUES
+esd.supp=supp;
+esd.gridsta=gridsta;
+esd.eigG=eigG;

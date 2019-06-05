@@ -35,7 +35,7 @@ contains scripts that implement the Quest ESD computation method in the manuscri
 ###### ./SpectrodeCode
 contains scripts that implement the Spectrode ESD estimation method in the manuscript ''Efficient computation of limit spectra of sample covariance matrices'', E Dobriban, Rand. Matr. Th. Appl., 2015, 4(4):1550019:1-36 from https://github.com/dobriban/EigenEdge/
 
-NOTE 1: The results in the paper correspond to executions on an 8(16) x Intel(R) Core(TM) i7-5960X CPU @ 3.00GHz 64GB RAM with a GeForce GTX TITAN X under MATLABR2018b.
+NOTE 1: The results in the paper correspond to executions on an 8(16) x Intel(R) Core(TM) i7-5960X CPU @ 3.00GHz 64GB RAM with a GeForce GTX TITAN X under MATLABR2019a.
 
 NOTE 2: Generation of the figures for the scripts *mixAndMix_Exp[02,04,06,08,10,11,12]* should be very quick, while the scripts *mixAndMix_Exp[01,03,05,07,09,13]* may take longer, as they involve measurements of computation times.
 

@@ -1,7 +1,7 @@
-function gridx=startingGrid(eigv,Beta,N0,Nin,Nfu)
+function [gridx,suppx]=startingGrid(eigv,Beta,N0,Nin,Nfu)
 
 %STARTINGGRID computes the starting grid performing gross support detection
-%   GRIDX=STARTINGGRID(EIGV,BETA,{NIN})
+%   GRIDX=STARTINGGRID(EIGV,BETA,{N0},{NIN},{NFU})
 %   * EIGV is a set of M population eigenvalues
 %   * BETA is the aspect ratio
 %   * {N0} is the baseline number of points for support detection. It
@@ -10,7 +10,8 @@ function gridx=startingGrid(eigv,Beta,N0,Nin,Nfu)
 %   each detected interval. It defaults to 11
 %   * {NFU} is the minimum number of points per eigenvalue on the grid. It
 %   defaults to 3
-%   * GRIDX is the generated grid
+%   ** GRIDX is the generated grid
+%   ** SUPPX are the tested support intervals
 %
 
 if nargin<3 || isempty(N0);N0=100;end
@@ -22,6 +23,7 @@ gpu=isa(eigv,'gpuArray');
 %CONSERVATIVE SUPPORT LIMITS
 pm=[-1 1]; 
 Fact=1+1e-3;%Factor to extend the limits for numerical purposes
+if Beta==1;Beta=1-1e-9;end%Necessary to build the grid for Beta=1
 BetaLim=(Fact.^pm).*(1+pm.*sqrt(Beta)).^2;
 
 eigv=sort(eigv,1);
@@ -33,20 +35,25 @@ grDi=(grAd(1:end-1,2,:)<grAd(2:end,1,:));%These are zones we initially guess are
 NS=size(grDi,3);
 indBr=cell(1,NS);
 NG=zeros(1,NS);
+NI=zeros(1,NS);
 for s=1:NS
     indBr{s}=cat(1,0,find(grDi(:,:,s)),M);%Intervals
     NG(s)=sum(max(round(Nfu*N0*diff(indBr{s})/M),Nin));%Grid sizes
+    NI(s)=length(indBr{s})-1;%Number of intervals
 end
 
 %THE GRID IS ADAPTED TO THE DETECTED SUPPORT INTERVALS (UNIFORM AND WITH
 %DENSITY GOVERNED BY NUMBER OF POINTS SO AS TO BALANCE RELATIVE WEIGHTS)
 %IMPROVED DETECTION OF SMALL COMPONENTS BY OPERATING ON A LOGARITHMIC SCALE
 gridx=zeros([max(NG) 1 NS],'like',grAd);%We book memory with precomputed size of the grid
+suppx=-inf([max(NI) 2 NS],'like',grAd);%To store the tested supports
 for s=1:NS
-    cont=0;
-    for n=1:length(indBr{s})-1
+    cont=0;    
+    for n=1:NI(s)
         NP=max(round(Nfu*N0*(indBr{s}(n+1)-indBr{s}(n))/M),Nin);
-        gridx(cont+1:cont+NP,1,s)=exp(linspace(log(grAd(indBr{s}(n)+1,1,s)),log(grAd(indBr{s}(n+1),2,s)),NP));
+        suppx(n,1,s)=grAd(indBr{s}(n)+1,1,s);
+        suppx(n,2,s)=grAd(indBr{s}(n+1),2,s);
+        gridx(cont+1:cont+NP,1,s)=exp(linspace(log(suppx(n,1,s)),log(suppx(n,2,s)),NP));
         cont=cont+NP;
     end
     if NG(s)<max(NG)%We fill by homogeneously distributing points
@@ -58,5 +65,3 @@ for s=1:NS
 end
 if gpu;gridx=gpuArray(gridx);end
 gridx=sort(gridx,1);
-
-

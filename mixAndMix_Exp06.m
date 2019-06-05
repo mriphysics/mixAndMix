@@ -28,14 +28,14 @@ esdAux=ESDQuest(C,N);
 esd{2}=esdAux{1};
     
 %OURS STANDARD
-tolFpa=1e-4;
+tolFpa=1e-5;
 NL=3;
 esd{3}=ESDMixAndMix(C,N,tolFpa,NL);
     
 %MP
 esdRef=ESDTwoDeltas(Beta,M*M,1-w,eig);
     
-meth={'SPECTRODE','QUEST','MIXANDMIX','f(x)'};
+meth={'SPECTRODE','QuEST','MIXANDMIX','f(x)'};
 err=zeros(3,M*M);
 for m=1:3
     fprintf('Method: %s. Number of grid points: %d\n',meth{m},length(esd{m}.grid));

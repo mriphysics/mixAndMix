@@ -13,11 +13,12 @@ function esd=ESDMarcenkoPastur(Beta,N)
 
 if nargin<2;N=256;end
 
-assert(Beta>0 && Beta<1,'The aspect ratio should be confined to (0,1) but it is %.2f',Beta);
-
 minV=(1-sqrt(Beta)).^2;
 maxV=(1+sqrt(Beta)).^2;
 
 if numel(N)==1;esd.grid=linspace(minV,maxV,N);else esd.grid=N;end
 esd.dens=marcenkoPastur(esd.grid,Beta);
+esd.gridd=gradient(esd.grid);
+esd.apdf=sum(esd.dens.*esd.gridd);
+
 

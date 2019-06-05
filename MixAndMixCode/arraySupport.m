@@ -15,7 +15,7 @@ if nargin<2 || isempty(tol);tol=0;end
 if nargin<3 || isempty(ext);ext=0;end
 if nargin<4 || isempty(typ);typ=1;end
 
-x=(abs(x)>tol);
+x=bsxfun(@ge,abs(x),tol*median(x,1));
 [~,thI]=max(x,[],1);
 [~,thS]=max(flip(x,1),[],1);
 N=size(x);

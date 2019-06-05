@@ -27,11 +27,11 @@ if NDA<=2
 end
 perm=1:NDA;perm([2 1])=1:2;
 
-if isa(A,'gpuArray')      
+if isa(A,'gpuArray')       
     if nargin>=3        
         if isequal(f,@mtimes)
             NA=size(A);NB=size(B);
-            if NA(1)==1 && NB(2)==1
+            if NA(1)==1 || NB(2)==1
                 A=permute(A,perm);                           
                 A=sum(bsxfun(@times,A,B),1);
                 if NB(2)==1;A=permute(A,perm);end
@@ -54,15 +54,14 @@ else
             [NA,NB]=parUnaFun({A,B},@size);
             [NDA,NDB]=parUnaFun({A,B},@numDims);
             [NDA,NDB]=parUnaFun({NDA,NDB},@max,3);
-            NA(end+1:NDB)=1;
-            NB(end+1:NDA)=1;
+            if NDB>NDA;NA(end+1:NDB)=1;else NB(end+1:NDA)=1;end
             NAB=[1 1 NA(3:end)./NB(3:end)];
             NBA=[1 1 NB(3:end)./NA(3:end)];
             B=repmat(B,ceil(NAB));
             A=repmat(A,ceil(NBA));
         end
         NA=size(A);
-        [A,NAP]=resSub(A,3:numDims(A));NAP(end+1:3)=1;        
+        [A,NAP]=resSub(A,3:numDims(A));NAP(end+1:3)=1;
         %if NAP(3)>=8;parforFl=Inf;else parforFl=0;end
         if ~isB            
             %parfor(p=1:NAP(3),parforFl) A(:,:,p)=f(A(:,:,p));end

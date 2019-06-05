@@ -68,6 +68,7 @@ function esdo=SpectrodeBody(eigvo,tolUnique,w,Beta,tolEnd)
     wtol=accumarray(itol,w);
     %CALL THE SPECTRODE METHOD
     if any(eigvtol(:)>1e-6)
+        if Beta==1;Beta=0.99;end%This method does not work for Beta=1
         [grid,dens,~,~,mass_at_0,K_hat,l_hat,u_hat]=spectrode(eigvtol,Beta,wtol,[],[],tolEnd);  
         esdo.grid=single(grid);esdo.dens=single(dens);esdo.thre=single(max(u_hat));
         esdo.gridd=gradient(esdo.grid);
